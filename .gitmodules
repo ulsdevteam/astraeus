@@ -1,0 +1,15 @@
+[submodule "pisces"]
+	path = pisces
+	url = https://github.com/ulsdevteam/pisces.git
+[submodule "scorpio"]
+	path = scorpio
+	url = https://github.com/ulsdevteam/scorpio.git
+[submodule "argo"]
+	path = argo
+	url = ./argo/
+[submodule "request_broker"]
+	path = request_broker
+	url = ./request_broker/
+[submodule "dimes"]
+	path = dimes
+	url = ./dimes/
