@@ -4,7 +4,7 @@ This application integrates the Rockefeller Center Archive (https://github.com/R
 
 ## Author / License
 
-Written by Kevin Cloud for the [University of Pittsburgh](http://www.pitt.edu).  Copyright (c) University of Pittsburgh.
+Written by the ULS Development Team for the [University of Pittsburgh](http://www.pitt.edu).  Copyright (c) University of Pittsburgh.
 
 Released under a license of GPL v2 or later.
 
