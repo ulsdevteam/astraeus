@@ -6,10 +6,10 @@
 	url = https://github.com/ulsdevteam/scorpio.git
 [submodule "argo"]
 	path = argo
-	url = ./argo/
+	url = https://github.com/ulsdevteam/argo.git
 [submodule "request_broker"]
 	path = request_broker
-	url = ./request_broker/
+	url = https://github.com/ulsdevteam/request_broker.git
 [submodule "dimes"]
 	path = dimes
-	url = ./dimes/
+	url = https://github.com/ulsdevteam/dimes.git
