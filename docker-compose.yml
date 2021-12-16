@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   pisces-db:
     image: postgres:10.4
@@ -9,10 +8,12 @@ services:
       - pisces
   pisces-web:
     build: pisces
+    env_file:
+      - ./pisces/.env.prod
     volumes:
       - ./pisces:/code
     networks:
-      - dasc-interop
+      - astraeus-interop
       - pisces
     ports:
       - "8007:8007"
@@ -23,14 +24,16 @@ services:
     volumes:
       - scorpiodbvolume:/var/lib/postgresql/data/
     networks:
-      - microservices
+      - scorpio
   scorpio-web:
     build: scorpio
+    env_file:
+      - ./scorpio/.env.prod
     volumes:
       - ./scorpio:/code
     networks:
-      - microservices
-      - dasc-interop
+      - scorpio
+      - astraeus-interop
     ports:
       - "8008:8008"
     depends_on:
@@ -43,11 +46,13 @@ services:
       - argo
   argo-web:
     build: argo
+    env_file:
+      - ./argo/.env.prod
     volumes:
       - ./argo:/code
     networks:
       - argo
-      - dasc-interop
+      - astraeus-interop
     ports:
       - "8001:8001"
     depends_on:
@@ -61,40 +66,27 @@ services:
   request-broker-web:
     build: request_broker
     command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - ./request_broker/.env.prod
     volumes:
       - ./request_broker:/code
     networks:
       - request-broker
-      - dasc-interop
+      - astraeus-interop
     ports:
       - "8000:8000"
     depends_on:
       - request-broker-db
-    environment:
-      - DEBUG=1
-      - SECRET_KEY=f15f28c4457b5f0e474f58b8dfa815acd1a622dae2dc9ef7
-      - DJANGO_ALLOWED_HOSTS=request-broker-web localhost dasc-prod-01.library.pitt.edu 
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000 http://localhost:9200 http://localhost:3001 http://localhost:8001
-      - SQL_ENGINE=django.db.backends.postgresql
-      - SQL_DATABASE=postgres
-      - SQL_USER=postgres
-      - SQL_PASSWORD=postgres
-      - SQL_HOST=request-broker-db
-      - SQL_PORT=5432
-      - AS_BASEURL=https://pittapi.as.atlas-sys.com
-      - AS_USERNAME=sysdevapi
-      - AS_PASSWORD=uF5jH5kH5kL6
-      - AS_REPO_ID=10
-      - DIMES_PREFIX=http://localhost:3000
-      - AEON_API_KEY=ef6d670d-63a2-45a6-ac10-2c379f2e93a5
   dimes-web:
     build: dimes
+    env_file:
+      - ./dimes/.env.prod
     volumes:
       - ./dimes:/app
       - ./dimes/node_modules:/app/node_modules
     networks:
       - dimes
-      - dasc-interop 
+      - astraeus-interop
     ports:
       - 3000:3000
     stdin_open: true
@@ -109,8 +101,8 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - http.cors.enabled=true
-      - http.cors.allow-origin=http://localhost:8000 http://localhost:3000 http://localhost:3001 http://localhost:8001
-      - http.cors.allow-headers=Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With
+      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu http://myreadingroom.library.pitt.edu http://localhost:3000 https://requestbroker.library.pitt.edu http://requestbroker.library.pitt.edu http://localhost:8000 https://argo.library.pitt.edu http://argo.library.pitt.edu http://localhost:8001 http://localhost:3001 http:localhost:8008 http://localhost:8007
+      - http.cors.allow-headers=Content-Type,Access-Control-Allow-Headers,Authorization,X-Requested-With
       - http.cors.allow-credentials=true
     ulimits:
       memlock:
@@ -119,7 +111,7 @@ services:
     volumes:
       - elasticsearch:/usr/share/elasticsearch/data
     networks:
-      - dasc-interop
+      - astraeus-interop
     ports:
       - 9200:9200
 
@@ -133,8 +125,8 @@ volumes:
   nodemodules:
 
 networks:
-  microservices:
-  dasc-interop:
+  scorpio:
+  astraeus-interop:
   pisces:
   argo:
   request-broker:
