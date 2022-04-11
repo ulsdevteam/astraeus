@@ -7,7 +7,9 @@ services:
     networks:
       - pisces
   pisces-web:
-    build: pisces
+    build: 
+      context: ./pisces
+      dockerfile: Dockerfile.prod
     env_file:
       - ./pisces/.env.prod
     volumes:
@@ -35,7 +37,9 @@ services:
     networks:
       - scorpio
   scorpio-web:
-    build: scorpio
+    build: 
+      context: ./scorpio
+      dockerfile: Dockerfile.prod
     env_file:
       - ./scorpio/.env.prod
     volumes:
@@ -63,7 +67,9 @@ services:
     networks:
       - argo
   argo-web:
-    build: argo
+    build: 
+      context: ./argo
+      dockerfile: Dockerfile.prod
     env_file:
       - ./argo/.env.prod
     volumes:
@@ -82,7 +88,9 @@ services:
     networks:
       - request-broker
   request-broker-web:
-    build: request_broker
+    build: 
+      context: ./request_broker
+      dockerfile: Dockerfile.prod
     command: python manage.py runserver 0.0.0.0:8000
     env_file:
       - ./request_broker/.env.prod
@@ -96,7 +104,9 @@ services:
     depends_on:
       - request-broker-db
   dimes-web:
-    build: dimes
+    build: 
+      context: ./dimes
+      dockerfile: Dockerfile.prod
     env_file:
       - ./dimes/.env.prod
     volumes:
@@ -106,7 +116,7 @@ services:
       - dimes
       - astraeus-interop
     ports:
-      - 3000:3000
+      - 3000:80
     stdin_open: true
 
   elasticsearch:
