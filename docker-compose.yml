@@ -5,18 +5,15 @@ services:
     volumes:
       - piscesdbvolume:/var/lib/postgresql/data/
     networks:
-      - pisces
+      - astraeus-interop
   pisces-web:
     build: 
       context: ./pisces
       dockerfile: Dockerfile.prod
-    env_file:
-      - ./pisces/.env.prod
     volumes:
       - ./pisces:/code
     networks:
       - astraeus-interop
-      - pisces
     ports:
       - "8007:8007"
     depends_on:
@@ -29,23 +26,19 @@ services:
       - /data/logs/cron:/var/log/pisces-cron
     networks:
       - astraeus-interop
-      - pisces
   scorpio-db:
     image: postgres:10.4
     volumes:
       - scorpiodbvolume:/var/lib/postgresql/data/
     networks:
-      - scorpio
+      - astraeus-interop
   scorpio-web:
     build: 
       context: ./scorpio
       dockerfile: Dockerfile.prod
-    env_file:
-      - ./scorpio/.env.prod
     volumes:
       - ./scorpio:/code
     networks:
-      - scorpio
       - astraeus-interop
     ports:
       - "8008:8008"
@@ -65,17 +58,14 @@ services:
     volumes:
       - argodbvolume:/var/lib/postgresql/data/
     networks:
-      - argo
+      - astraeus-interop
   argo-web:
     build: 
       context: ./argo
       dockerfile: Dockerfile.prod
-    env_file:
-      - ./argo/.env.prod
     volumes:
       - ./argo:/code
     networks:
-      - argo
       - astraeus-interop
     ports:
       - "8001:8001"
@@ -86,18 +76,14 @@ services:
     volumes:
       - requestbrokerdbvolume:/var/lib/postgresql/data/
     networks:
-      - request-broker
+      - astraeus-interop
   request-broker-web:
     build: 
       context: ./request_broker
       dockerfile: Dockerfile.prod
-    command: python manage.py runserver 0.0.0.0:8000
-    env_file:
-      - ./request_broker/.env.prod
     volumes:
       - ./request_broker:/code
     networks:
-      - request-broker
       - astraeus-interop
     ports:
       - "8000:8000"
@@ -107,13 +93,7 @@ services:
     build: 
       context: ./dimes
       dockerfile: Dockerfile.prod
-    env_file:
-      - ./dimes/.env.prod
-    volumes:
-      - ./dimes:/app
-      - ./dimes/node_modules:/app/node_modules
     networks:
-      - dimes
       - astraeus-interop
     ports:
       - 3000:80
@@ -149,8 +129,6 @@ volumes:
   elasticsearch:
   argodbvolume:
   requestbrokerdbvolume:
-  dimes:
-  nodemodules:
 
 networks:
   scorpio:
