@@ -51,7 +51,6 @@ services:
     volumes:
       - /data/logs/cron:/var/log/scorpio-cron
     networks:
-      - scorpio
       - astraeus-interop
   argo-db:
     image: postgres:10.4
@@ -131,9 +130,4 @@ volumes:
   requestbrokerdbvolume:
 
 networks:
-  scorpio:
   astraeus-interop:
-  pisces:
-  argo:
-  request-broker:
-  dimes:
