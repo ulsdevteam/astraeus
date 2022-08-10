@@ -10,6 +10,8 @@ services:
     build: 
       context: ./pisces
       dockerfile: Dockerfile.prod
+    environment:
+      - APPLICATION_PORT=8007
     volumes:
       - ./pisces:/code
     networks:
