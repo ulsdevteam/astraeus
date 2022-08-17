@@ -110,9 +110,9 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - http.cors.enabled=true
-      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu http://myreadingroom.library.pitt.edu http://localhost:3000 https://requestbroker.library.pitt.edu http://requestbroker.library.pitt.edu http://localhost:8000 https://argo.library.pitt.edu http://argo.library.pitt.edu http://localhost:8001 http://localhost:3001 http:localhost:8008 http://localhost:8007
+      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu,http://myreadingroom.library.pitt.edu,http://localhost:3000,https://requestbroker.library.pitt.edu,http://requestbroker.library.pitt.edu,http://localhost:8000,https://argo.library.pitt.edu,http://argo.library.pitt.edu,http://localhost:8001,http://localhost:3001,http:localhost:8008,http://localhost:8007,http://localhost:1358,http://127.0.0.1:1358,https://opensource.appbase.io
       - http.cors.allow-headers=Content-Type,Access-Control-Allow-Headers,Authorization,X-Requested-With
-      - http.cors.allow-credentials=true
+      - http.cors.allow-credentials=false
     ulimits:
       memlock:
         soft: -1
@@ -123,6 +123,23 @@ services:
       - astraeus-interop
     ports:
       - 9200:9200
+  kibana:
+    image: kibana:7.9.3
+    networks:
+      - astraeus-interop
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+  dejavu:
+    image: appbaseio/dejavu:3.6.0
+    container_name: dejavu
+    ports:
+      - 1358:1358
+    links:
+      - elasticsearch
 
 volumes:
   piscesdbvolume:
