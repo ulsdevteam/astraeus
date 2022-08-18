@@ -20,6 +20,7 @@ services:
       - "8007:8007"
     depends_on:
       - pisces-db
+      - elasticsearch
   pisces-cron:
     build:
       context: ./pisces
@@ -28,6 +29,8 @@ services:
       - /data/logs/cron:/var/log/pisces-cron
     networks:
       - astraeus-interop
+    depends_on:
+      - pisces-web
   scorpio-db:
     image: postgres:10.4
     volumes:
@@ -46,6 +49,7 @@ services:
       - "8008:8008"
     depends_on:
       - scorpio-db
+      - elasticsearch
   scorpio-cron:
     build:
       context: ./scorpio
@@ -54,6 +58,8 @@ services:
       - /data/logs/cron:/var/log/scorpio-cron
     networks:
       - astraeus-interop
+    depends_on:
+      - scorpio-web
   argo-db:
     image: postgres:10.4
     volumes:
@@ -72,6 +78,7 @@ services:
       - "8001:8001"
     depends_on:
       - argo-db
+      - elasticsearch
   request-broker-db:
     image: postgres:10.4
     volumes:
@@ -99,6 +106,9 @@ services:
     ports:
       - 3000:80
     stdin_open: true
+    depends_on:
+      - argo-web
+      - request-broker-web
 
   elasticsearch:
     image: elasticsearch:7.9.3
