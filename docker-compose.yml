@@ -1,105 +1,105 @@
 version: '3'
 services:
+
   pisces-db:
     image: postgres:10.4
     volumes:
-      - piscesdbvolume:/var/lib/postgresql/data/
+      - piscesdbvol:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
   pisces-web:
     build: 
       context: ./pisces
-      dockerfile: Dockerfile.prod
+    env_file:
+      - ./pisces/pisces/config.py
     environment:
-      - APPLICATION_PORT=8007
+      - APPLICATION_PORT=${PISCES_APP_PORT:-8007}
+    entrypoint: /code/entrypoint.sh
     volumes:
       - ./pisces:/code
     networks:
       - astraeus-interop
     ports:
-      - "8007:8007"
+      - "${PISCES_APP_PORT:-8007}:${PISCES_APP_PORT:-8007}"
     depends_on:
       - pisces-db
-  pisces-cron:
-    build:
-      context: ./pisces
-      dockerfile: Dockerfile.cron
-    volumes:
-      - /data/logs/cron:/var/log/pisces-cron
-    networks:
-      - astraeus-interop
   scorpio-db:
     image: postgres:10.4
     volumes:
-      - scorpiodbvolume:/var/lib/postgresql/data/
+      - scorpiodbvol:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
   scorpio-web:
     build: 
       context: ./scorpio
-      dockerfile: Dockerfile.prod
+    entrypoint: /code/entrypoint.sh
     volumes:
       - ./scorpio:/code
     networks:
       - astraeus-interop
+    env_file:
+      - ./scorpio/scorpio/config.py
+    environment:
+      - APPLICATION_PORT=${SCORPIO_APP_PORT:-8013}
     ports:
-      - "8008:8008"
+      - "${SCORPIO_APP_PORT:-8013}:${SCORPIO_APP_PORT:-8013}"
     depends_on:
       - scorpio-db
-  scorpio-cron:
-    build:
-      context: ./scorpio
-      dockerfile: Dockerfile.cron
-    volumes:
-      - /data/logs/cron:/var/log/scorpio-cron
-    networks:
-      - astraeus-interop
   argo-db:
     image: postgres:10.4
     volumes:
-      - argodbvolume:/var/lib/postgresql/data/
+      - argodbvol:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
   argo-web:
     build: 
       context: ./argo
-      dockerfile: Dockerfile.prod
+    entrypoint: /code/entrypoint.sh
     volumes:
       - ./argo:/code
+    env_file:
+      - ./argo/argo/config.py
+    environment:
+      - APPLICATION_PORT=${ARGO_APP_PORT:-8014}
     networks:
       - astraeus-interop
     ports:
-      - "8001:8001"
+      - "${ARGO_APP_PORT:-8014}:${ARGO_APP_PORT:-8014}"
     depends_on:
       - argo-db
   request-broker-db:
     image: postgres:10.4
     volumes:
-      - requestbrokerdbvolume:/var/lib/postgresql/data/
+      - requestbrokerdbvol:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
+    environment:
+      - POSTGRES_USER=${BROKER_POSTGRESS_USER:-postgres}  # name of the application database user
+      - POSTGRES_PASSWORD=${BROKER_POSTGRESS_PASSWORD:-postgres}  # name of the application database user
+      - POSTGRES_DB=${BROKER_POSTGRESS_DB:-request_broker_dev}  # name of the application database
   request-broker-web:
     build: 
       context: ./request_broker
-      dockerfile: Dockerfile.prod
     volumes:
       - ./request_broker:/code
     networks:
       - astraeus-interop
+    environment:
+      - APPLICATION_PORT=${BROKER_PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${BROKER_PORT:-8000}:${BROKER_PORT:-8000}"
     depends_on:
       - request-broker-db
   dimes-web:
     build: 
       context: ./dimes
-      dockerfile: Dockerfile.prod
     networks:
       - astraeus-interop
+    env_file:
+      - ./dimes/.env
     ports:
-      - 3000:80
+      - ${DIMES_PORT:-3000}:80
     stdin_open: true
-
   elasticsearch:
     image: elasticsearch:7.9.3
     environment:
@@ -110,7 +110,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - http.cors.enabled=true
-      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu http://myreadingroom.library.pitt.edu http://localhost:3000 https://requestbroker.library.pitt.edu http://requestbroker.library.pitt.edu http://localhost:8000 https://argo.library.pitt.edu http://argo.library.pitt.edu http://localhost:8001 http://localhost:3001 http:localhost:8008 http://localhost:8007
+      - http.cors.allow-origin=http://localhost:8000
       - http.cors.allow-headers=Content-Type,Access-Control-Allow-Headers,Authorization,X-Requested-With
       - http.cors.allow-credentials=true
     ulimits:
@@ -118,18 +118,18 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - elasticsearch:/usr/share/elasticsearch/data
+      - elasticsearchvol:/usr/share/elasticsearch/data
     networks:
       - astraeus-interop
     ports:
-      - 9200:9200
+      - ${ELASTIC_PORT:-9200}:${ELASTIC_PORT:-9200}
 
 volumes:
-  piscesdbvolume:
-  scorpiodbvolume:
-  elasticsearch:
-  argodbvolume:
-  requestbrokerdbvolume:
+  piscesdbvol:
+  scorpiodbvol:
+  elasticsearchvol:
+  argodbvol:
+  requestbrokerdbvol:
 
 networks:
   astraeus-interop:
