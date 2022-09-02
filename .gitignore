@@ -1,4 +1,2 @@
 ### Deploy ###
-*.production.yml
-*.prod.yml
-traefik.yml
+.env

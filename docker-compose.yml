@@ -89,6 +89,9 @@ services:
     build: 
       context: ./request_broker
       dockerfile: Dockerfile.prod
+      args:
+        - REQUEST_BROKER_DNS=${REQUEST_BROKER_DNS}
+        - APPLICATION_PORT=${REQUEST_BROKER_PORT}
     volumes:
       - ./request_broker:/code
     networks:
