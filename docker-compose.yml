@@ -41,12 +41,15 @@ services:
     build: 
       context: ./scorpio
       dockerfile: Dockerfile.prod
+      args:
+        - SCORPIO_DNS=${SCORPIO_DNS}
+        - APPLICATION_PORT=${SCORPIO_PORT:-8013}
     volumes:
       - ./scorpio:/code
     networks:
       - astraeus-interop
     ports:
-      - "8008:8008"
+      - "${SCORPIO_PORT:-8013}:${SCORPIO_PORT:-8013}"
     depends_on:
       - scorpio-db
       - elasticsearch
@@ -91,13 +94,13 @@ services:
       dockerfile: Dockerfile.prod
       args:
         - REQUEST_BROKER_DNS=${REQUEST_BROKER_DNS}
-        - APPLICATION_PORT=${REQUEST_BROKER_PORT}
+        - APPLICATION_PORT=${REQUEST_BROKER_PORT:-8000}
     volumes:
       - ./request_broker:/code
     networks:
       - astraeus-interop
     ports:
-      - "8000:8000"
+      - "${REQUEST_BROKER_PORT:-8000}:${REQUEST_BROKER_PORT:-8000}"
     depends_on:
       - request-broker-db
   dimes-web:
