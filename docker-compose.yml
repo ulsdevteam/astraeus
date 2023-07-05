@@ -6,6 +6,7 @@ services:
       - piscesdbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
+    restart: "always"
   pisces-web:
     build: 
       context: ./pisces
@@ -21,6 +22,7 @@ services:
     depends_on:
       - pisces-db
       - elasticsearch
+    restart: "always"
   pisces-cron:
     build:
       context: ./pisces
@@ -31,12 +33,14 @@ services:
       - astraeus-interop
     depends_on:
       - pisces-web
+    restart: "always"
   scorpio-db:
     image: postgres:10.4
     volumes:
       - scorpiodbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
+    restart: "always"
   scorpio-web:
     build: 
       context: ./scorpio
@@ -53,6 +57,7 @@ services:
     depends_on:
       - scorpio-db
       - elasticsearch
+    restart: "always"
   scorpio-cron:
     build:
       context: ./scorpio
@@ -63,12 +68,14 @@ services:
       - astraeus-interop
     depends_on:
       - scorpio-web
+    restart: "always"
   argo-db:
     image: postgres:10.4
     volumes:
       - argodbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
+    restart: "always"
   argo-web:
     build: 
       context: ./argo
@@ -82,6 +89,7 @@ services:
     depends_on:
       - argo-db
       - elasticsearch
+    restart: "always"
   request-broker-db:
     image: postgres:10.4
     volumes:
@@ -103,6 +111,7 @@ services:
       - "${REQUEST_BROKER_PORT:-8000}:${REQUEST_BROKER_PORT:-8000}"
     depends_on:
       - request-broker-db
+    restart: "always"
   dimes-web:
     build: 
       context: ./dimes
@@ -115,6 +124,7 @@ services:
     depends_on:
       - argo-web
       - request-broker-web
+    restart: "always"
 
   elasticsearch:
     image: elasticsearch:7.9.3
@@ -139,6 +149,7 @@ services:
       - astraeus-interop
     ports:
       - 9200:9200
+    restart: "always"
 
 volumes:
   piscesdbvolume:
