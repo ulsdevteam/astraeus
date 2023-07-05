@@ -111,6 +111,8 @@ services:
       - "${REQUEST_BROKER_PORT:-8000}:${REQUEST_BROKER_PORT:-8000}"
     depends_on:
       - request-broker-db
+    links:
+      - request-broker-db:request-broker-db
     restart: "always"
   dimes-web:
     build: 
