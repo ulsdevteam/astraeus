@@ -1,12 +1,14 @@
 version: '3'
 services:
   pisces-db:
-    image: postgres:10.4
+    image: postgres:14.4
     volumes:
       - piscesdbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
     restart: "always"
+    environment:
+      - POSTGRES_PASSWORD=${PISCES_DB_PASS}
   pisces-web:
     build: 
       context: ./pisces
@@ -35,12 +37,14 @@ services:
       - pisces-web
     restart: "always"
   scorpio-db:
-    image: postgres:10.4
+    image: postgres:14.4
     volumes:
       - scorpiodbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
     restart: "always"
+    environment:
+      - POSTGRES_PASSWORD=${SCORPIO_DB_PASS}
   scorpio-web:
     build: 
       context: ./scorpio
@@ -70,12 +74,14 @@ services:
       - scorpio-web
     restart: "always"
   argo-db:
-    image: postgres:10.4
+    image: postgres:14.4
     volumes:
       - argodbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
     restart: "always"
+    environment:
+      - POSTGRES_PASSWORD=${ARGO_DB_PASS}
   argo-web:
     build: 
       context: ./argo
@@ -91,11 +97,13 @@ services:
       - elasticsearch
     restart: "always"
   request-broker-db:
-    image: postgres:10.4
+    image: postgres:14.4
     volumes:
       - requestbrokerdbvolume:/var/lib/postgresql/data/
     networks:
       - astraeus-interop
+    environment:
+      - POSTGRES_PASSWORD=${REQUEST_BROKER_DB_PASS}
   request-broker-web:
     build: 
       context: ./request_broker
