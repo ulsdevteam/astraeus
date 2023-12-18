@@ -105,18 +105,51 @@ services:
     environment:
       - POSTGRES_PASSWORD=${REQUEST_BROKER_DB_PASS}
   request-broker-web:
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_SECRET_KEY=${RB_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${RB_DJANGO_ALLOWED_HOSTS}
+      - DJANGO_CORS_ALLOWED_ORIGINS=${RB_DJANGO_CORS_ALLOWED_ORIGINS}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${SQL_DATABASE}
+      - SQL_USER=${SQL_USER}
+      - SQL_PASSWORD=${REQUEST_BROKER_DB_PASS}
+      - SQL_HOST=${RB_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - AS_BASEURL=${AS_BASEURL}
+      - AS_USERNAME=${AS_USERNAME}
+      - AS_PASSWORD=${AS_PASSWORD}
+      - AS_REPO_ID=${AS_REPO_ID}
+      - AEON_API_KEY=${RB_AEON_API_KEY}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - DEFAULT_FROM_EMAIL=${RB_DEFAULT_FROM_EMAIL}
+      - DIMES_BASEURL=${RB_DIMES_BASEURL}
+      - RESTRICTED_IN_CONTAINER=${RB_RESTRICTED_IN_CONTAINER}
+      - OFFSITE_BUILDINGS=${RB_OFFSITE_BUILDINGS}
+      - RESOURCE_ID_SEPARATOR=${RB_RESOURCE_ID_SEPARATOR}
+      - USE_LOCATION_TITLE=${RB_USE_LOCATION_TITLE}
+      - PROD=${PROD}
+      - AEON_CACHE_DURATION=${AEON_CACHE_DURATION}
+      - db=${RB_DB}
     build: 
       context: ./request_broker
       dockerfile: Dockerfile.prod
       args:
-        - REQUEST_BROKER_DNS=${REQUEST_BROKER_DNS}
-        - APPLICATION_PORT=${REQUEST_BROKER_PORT:-8000}
+        - REQUEST_BROKER_DNS=${RB_DNS}
+        - APPLICATION_PORT=${RB_PORT:-8000}
+        - DOCKER_BUILDKIT:0
+    hostname: requestbroker.library.pitt.edu
     volumes:
       - ./request_broker:/code
     networks:
       - astraeus-interop
     ports:
-      - "${REQUEST_BROKER_PORT:-8000}:${REQUEST_BROKER_PORT:-8000}"
+      - "${RB_PORT:-8000}:${RB_PORT:-8000}"
     depends_on:
       - request-broker-db
     restart: "always"
