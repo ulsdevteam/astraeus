@@ -156,7 +156,16 @@ services:
   dimes-web:
     build: 
       context: ./dimes
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_ARGO_BASEURL=${REACT_APP_ARGO_BASEURL}
+        - REACT_APP_REQUEST_BROKER_BASEURL=${REACT_APP_REQUEST_BROKER_BASEURL}
+        - REACT_APP_LOCALSTORAGE_KEY=${REACT_APP_LOCALSTORAGE_KEY}
+        - REACT_APP_MINIMAP_KEY=${REACT_APP_MINIMAP_KEY}
+        - REACT_APP_S3_BASEURL=${REACT_APP_S3_BASEURL}
+        - REACT_APP_EMAIL=${REACT_APP_EMAIL}
+        - REACT_APP_RECAPCHA_SITE_KEY=${REACT_APP_RECAPCHA_SITE_KEY}
+        - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
     networks:
       - astraeus-interop
     ports:
