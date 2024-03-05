@@ -21,8 +21,8 @@ services:
       - DJANGO_SECRET_KEY=${PISCES_DJANGO_SECRET_KEY}
       - DJANGO_ALLOWED_HOSTS=${PISCES_DJANGO_ALLOWED_HOSTS}
       - SQL_ENGINE=${SQL_ENGINE}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
+      - SQL_DATABASE=${PISCES_DB}
+      - SQL_USER=${PISCES_DB_USER}
       - SQL_PASSWORD=${PISCES_DB_PASS}
       - SQL_HOST=${PISCES_SQL_HOST}
       - SQL_PORT=${SQL_PORT}
@@ -57,7 +57,7 @@ services:
       - NOTIFY_TEAMS=${NOTIFY_TEAMS}
       - TEAMS_URL=${TEAMS_URL}
       - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
-      - db=${PISCES_DB}
+      - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
     volumes:
       - ./pisces:/code
@@ -78,8 +78,8 @@ services:
       - DJANGO_SECRET_KEY=${PISCES_DJANGO_SECRET_KEY}
       - DJANGO_ALLOWED_HOSTS=${PISCES_DJANGO_ALLOWED_HOSTS}
       - SQL_ENGINE=${SQL_ENGINE}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
+      - SQL_DATABASE=${PISCES_DB}
+      - SQL_USER=${PISCES_DB_USER}
       - SQL_PASSWORD=${PISCES_DB_PASS}
       - SQL_HOST=${PISCES_SQL_HOST}
       - SQL_PORT=${SQL_PORT}
@@ -114,7 +114,7 @@ services:
       - NOTIFY_TEAMS=${NOTIFY_TEAMS}
       - TEAMS_URL=${TEAMS_URL}
       - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
-      - db=${PISCES_DB}
+      - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
       - CRON=1
     build:
@@ -142,28 +142,33 @@ services:
       dockerfile: Dockerfile.prod
       args:
         - SCORPIO_DNS=${SCORPIO_DNS}
-        - APPLICATION_PORT=${SCORPIO_PORT:-8013}
+        - APPLICATION_PORT=${SCORPIO_PORT:-8008}
     environment:
       - DJANGO_DEBUG=${DJANGO_DEBUG}
       - DJANGO_CRON_LOCKFILE_PATH=${SCORPIO_DJANGO_CRON_LOCKFILE_PATH}
       - DJANGO_PORT=${SCORPIO_PORT}
+      - APPLICATION_PORT=${SCORPIO_PORT}
       - DJANGO_SECRET_KEY=${SCORPIO_DJANGO_SECRET_KEY}
       - DJANGO_ALLOWED_HOSTS=${SCORPIO_DJANGO_ALLOWED_HOSTS}
       - MAX_OBJECTS=${MAX_OBJECTS}
       - PISCES_BASEURL=${PISCES_BASEURL}
       - PISCES_POST_INDEX_PATH=${PISCES_POST_INDEX_PATH}
       - SQL_ENGINE=${SQL_ENGINE}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
+      - SQL_DATABASE=${SCORPIO_DB}
+      - SQL_USER=${SCORPIO_DB_USER}
       - SQL_PASSWORD=${SCORPIO_DB_PASS}
       - SQL_HOST=${SCORPIO_SQL_HOST}
       - SQL_PORT=${SQL_PORT}
+      - db=${SCORPIO_SQL_HOST}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - PROD=${PROD}
     volumes:
       - ./scorpio:/code
     networks:
       - astraeus-interop
     ports:
-      - "${SCORPIO_PORT:-8013}:${SCORPIO_PORT:-8013}"
+      - "${SCORPIO_PORT:-8008}:${SCORPIO_PORT:-8008}"
     depends_on:
       - scorpio-db
       - elasticsearch
@@ -173,17 +178,22 @@ services:
       - DJANGO_DEBUG=${DJANGO_DEBUG}
       - DJANGO_CRON_LOCKFILE_PATH=${SCORPIO_DJANGO_CRON_LOCKFILE_PATH}
       - DJANGO_PORT=${SCORPIO_PORT}
+      - APPLICATION_PORT=${SCORPIO_PORT}
       - DJANGO_SECRET_KEY=${SCORPIO_DJANGO_SECRET_KEY}
       - DJANGO_ALLOWED_HOSTS=${SCORPIO_DJANGO_ALLOWED_HOSTS}
       - MAX_OBJECTS=${MAX_OBJECTS}
       - PISCES_BASEURL=${PISCES_BASEURL}
       - PISCES_POST_INDEX_PATH=${PISCES_POST_INDEX_PATH}
       - SQL_ENGINE=${SQL_ENGINE}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
+      - SQL_DATABASE=${SCORPIO_DB}
+      - SQL_USER=${SCORPIO_DB_USER}
       - SQL_PASSWORD=${SCORPIO_DB_PASS}
       - SQL_HOST=${SCORPIO_SQL_HOST}
       - SQL_PORT=${SQL_PORT}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - db=${SCORPIO_SQL_HOST}
+      - PROD=${PROD}
       - CRON=1
     build:
       context: ./scorpio
@@ -206,19 +216,32 @@ services:
       - POSTGRES_PASSWORD=${ARGO_DB_PASS}
   argo-web:
     environment:
-      - SQL_PASSWORD=${ARGO_DB_PASS}
       - DJANGO_PORT=${ARGO_PORT}
+      - APPLICATION_PORT=${ARGO_PORT}
       - DJANGO_DEBUG=${DJANGO_DEBUG}
       - DJANGO_SECRET_KEY=${ARGO_DJANGO_SECRET_KEY}
       - DJANGO_STATIC_URL=${ARGO_DJANGO_STATIC_URL}
       - DJANGO_ALLOWED_HOSTS=${ARGO_DJANGO_ALLOWED_HOSTS}
       - ELASTICSEARCH_CONNECTION=${ELASTICSEARCH_CONNECTION}
+      - SQL_USER=${ARGO_DB_USER}
+      - SQL_PASSWORD=${ARGO_DB_PASS}
+      - SQL_ENGINE=${SQL_ENGINE}
       - SQL_HOST=${ARGO_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - SQL_DATABASE=${ARGO_DB}
       - USE_X_FORWARDED_HOST=${USE_X_FORWARDED_HOST}
       - SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - db=${ARGO_SQL_HOST}
+      - PROD=${PROD}
     build: 
       context: ./argo
+      args:
+      - APPLICATION_PORT=${ARGO_PORT}
+      - ARGO_DNS=${ARGO_DNS}
       dockerfile: Dockerfile.prod
+    hostname: argo.library.pitt.edu
     volumes:
       - ./argo:/code
     networks:
@@ -236,7 +259,7 @@ services:
     networks:
       - astraeus-interop
     environment:
-      - POSTGRES_PASSWORD=${REQUEST_BROKER_DB_PASS}
+      - POSTGRES_PASSWORD=${RB_DB_PASS}
   request-broker-web:
     environment:
       - DJANGO_DEBUG=${DJANGO_DEBUG}
@@ -244,9 +267,9 @@ services:
       - DJANGO_ALLOWED_HOSTS=${RB_DJANGO_ALLOWED_HOSTS}
       - DJANGO_CORS_ALLOWED_ORIGINS=${RB_DJANGO_CORS_ALLOWED_ORIGINS}
       - SQL_ENGINE=${SQL_ENGINE}
-      - SQL_DATABASE=${SQL_DATABASE}
-      - SQL_USER=${SQL_USER}
-      - SQL_PASSWORD=${REQUEST_BROKER_DB_PASS}
+      - SQL_DATABASE=${RB_DB}
+      - SQL_USER=${RB_DB_USER}
+      - SQL_PASSWORD=${RB_DB_PASS}
       - SQL_HOST=${RB_SQL_HOST}
       - SQL_PORT=${SQL_PORT}
       - AS_BASEURL=${AS_BASEURL}
@@ -268,7 +291,7 @@ services:
       - USE_LOCATION_TITLE=${RB_USE_LOCATION_TITLE}
       - PROD=${PROD}
       - AEON_CACHE_DURATION=${AEON_CACHE_DURATION}
-      - db=${RB_DB}
+      - db=${RB_SQL_HOST}
     build: 
       context: ./request_broker
       dockerfile: Dockerfile.prod
