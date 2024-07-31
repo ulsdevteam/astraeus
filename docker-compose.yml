@@ -1,4 +1,3 @@
-version: '3'
 services:
   pisces-db:
     image: postgres:14.4
@@ -127,6 +126,7 @@ services:
     depends_on:
       - pisces-web
     restart: "always"
+    
   scorpio-db:
     image: postgres:14.4
     volumes:
@@ -136,6 +136,7 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${SCORPIO_DB_PASS}
+ 
   scorpio-web:
     build: 
       context: ./scorpio
@@ -205,6 +206,7 @@ services:
     depends_on:
       - scorpio-web
     restart: "always"
+  
   argo-db:
     image: postgres:14.4
     volumes:
@@ -214,6 +216,7 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${ARGO_DB_PASS}
+
   argo-web:
     environment:
       - DJANGO_PORT=${ARGO_PORT}
@@ -244,6 +247,16 @@ services:
     hostname: argo.library.pitt.edu
     volumes:
       - ./argo:/code
+    labels:
+      - traefik.port=8001  
+      - traefik.enable=true
+      - traefik.http.routers.argo-web-https.rule=Host(`${ARGO_DNS}`)
+      - traefik.http.routers.argo-web-https.entrypoints=websecure
+      - traefik.http.routers.argo-web-https.tls=true
+      ## testing to hit middlewares
+      #- traefik.http.routers.argo-web-https.middlewares=auth
+      #- "traefik.http.middlewares.auth.basicauth.users=testuser:$$2y$$05$$PnbpRUEDgzGksx3OAiydNuMblgbWJiKCYWYSYCMgYTf2rZ8tPwH0." 
+      - traefik.http.services.argo-web-https.loadbalancer.server.port=8001
     networks:
       - astraeus-interop
     ports:
@@ -251,6 +264,7 @@ services:
     depends_on:
       - argo-db
       - elasticsearch
+      - traefik
     restart: "always"
   request-broker-db:
     image: postgres:14.4
@@ -260,6 +274,7 @@ services:
       - astraeus-interop
     environment:
       - POSTGRES_PASSWORD=${RB_DB_PASS}
+
   request-broker-web:
     environment:
       - DJANGO_DEBUG=${DJANGO_DEBUG}
@@ -276,7 +291,8 @@ services:
       - AS_USERNAME=${AS_USERNAME}
       - AS_PASSWORD=${AS_PASSWORD}
       - AS_REPO_ID=${AS_REPO_ID}
-      - AEON_API_KEY=${RB_AEON_API_KEY}
+      - AEON_APIKEY=${RB_AEON_API_KEY}
+      - AEON_BASEURL=${RB_AEON_BASEURL}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
@@ -302,13 +318,24 @@ services:
     hostname: requestbroker.library.pitt.edu
     volumes:
       - ./request_broker:/code
+    labels:
+      - traefik.port=8000
+      - traefik.enable=true
+      - traefik.http.middlewares.add-statusapi.addprefix.prefix=/api/status
+      - traefik.http.routers.request-broker-web.rule=Host(`${RB_DNS}`)
+      - traefik.http.routers.request-broker-web.middlewares=add-statusapi@docker
+      - traefik.http.routers.request-broker-web.entrypoints=websecure
+      - traefik.http.routers.request-broker-web.tls=true
+      - traefik.http.services.request-broker-web.loadbalancer.server.port=8000
     networks:
       - astraeus-interop
     ports:
       - "${RB_PORT:-8000}:${RB_PORT:-8000}"
     depends_on:
       - request-broker-db
+      - traefik
     restart: "always"
+
   dimes-web:
     build: 
       context: ./dimes
@@ -324,12 +351,20 @@ services:
         - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
     networks:
       - astraeus-interop
+    labels:
+      - traefik.port=80
+      - traefik.enable=true
+      - traefik.http.routers.dimes-web-https.rule=Host(`myreadingroom.library.pitt.edu`)
+      - traefik.http.routers.dimes-web-https.entrypoints=websecure
+      - traefik.http.routers.dimes-web-https.tls=true
+      - traefik.http.services.dimes-web-https.loadbalancer.server.port=80
     ports:
       - 3000:80
     stdin_open: true
     depends_on:
       - argo-web
       - request-broker-web
+      - traefik
     restart: "always"
 
   elasticsearch:
@@ -356,6 +391,50 @@ services:
     ports:
       - 9200:9200
     restart: "always"
+
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    hostname: "traefik"
+    command:
+      ##- --log.level=DEBUG
+      - --log.level=INFO
+      - --providers.docker
+      - --api
+      ##- --api.insecure   # only for testing environment
+      - --providers.docker.exposedbydefault=false
+      #entrypoints
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443  
+      #cert
+      - --providers.file.directory=/etc/traefik/config #dynamic config
+      - --providers.file.watch=true   ## reload any changes
+    networks:
+      - astraeus-interop
+    ports:
+      - "80:80"  #encrypt uses this port 
+      - "443:443"  
+      - "8080:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - ${CONFIG_PATH}/config/certificates.yml:/etc/traefik/config/certificates.yml
+      - ${CONFIG_PATH}/config/tls-cert/:/etc/tls-cert/
+
+    labels:
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+      #  redirect nonsecure request to https
+      - "traefik.http.routers.http-request.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-request.entrypoints=web"
+      - "traefik.http.routers.http-request.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # dashboard 
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.rule=Host(`${DASHBOARD_HOST}`)
+      - traefik.http.routers.api.tls=true 
+      - traefik.http.routers.api.service=api@internal  #forward requests to api service
+      - traefik.http.services.dashboard.loadbalancer.server.port=8080
+    restart: always #always restart traefik
 
 volumes:
   piscesdbvolume:
