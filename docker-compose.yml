@@ -321,8 +321,7 @@ services:
       - traefik.port=8000
       - traefik.enable=true
       ## expose available RB Api end entries
-      - "traefik.http.routers.request-broker-web.rule=(Host(`${RB_DNS}`) && PathRegexp(`^/api/(status|reading-rooms)(/?)$`)) 
-        || (Host(`${RB_DNS}`) && PathRegexp(`^/api/(download-csv)(/.*)$`)) || (Host(`${RB_DNS}`) && (PathPrefix(`${RB_DELV_API}`) || PathPrefix(`${RB_PROC_API}`)))"
+      - "traefik.http.routers.request-broker-web.rule=(Host(`${RB_DNS}`) && PathRegexp(`^/api/(.*)$`))"
       - traefik.http.routers.request-broker-web.entrypoints=web,websecure
       - traefik.http.routers.request-broker-web.tls=true
       - traefik.http.services.request-broker-web.loadbalancer.server.port=8000
@@ -345,7 +344,7 @@ services:
         - REACT_APP_MINIMAP_KEY=${REACT_APP_MINIMAP_KEY}
         - REACT_APP_S3_BASEURL=${REACT_APP_S3_BASEURL}
         - REACT_APP_EMAIL=${REACT_APP_EMAIL}
-        - REACT_APP_RECAPCHA_SITE_KEY=${REACT_APP_RECAPCHA_SITE_KEY}
+        - REACT_APP_CAPTCHA_SITE_KEY=${REACT_APP_CAPTCHA_SITE_KEY}
         - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
     networks:
       - astraeus-interop
