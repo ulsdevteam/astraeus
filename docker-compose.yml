@@ -250,13 +250,13 @@ services:
     labels:
       - traefik.port=8001  
       - traefik.enable=true
+      # Entry Point for https
       - traefik.http.routers.argo-web-https.rule=Host(`${ARGO_DNS}`)
-      - traefik.http.routers.argo-web-https.entrypoints=websecure
+      - traefik.http.routers.argo-web-https.entrypoints=web,websecure
       - traefik.http.routers.argo-web-https.tls=true
-      ## testing to hit middlewares
-      #- traefik.http.routers.argo-web-https.middlewares=auth
-      #- "traefik.http.middlewares.auth.basicauth.users=testuser:$$2y$$05$$PnbpRUEDgzGksx3OAiydNuMblgbWJiKCYWYSYCMgYTf2rZ8tPwH0." 
+      - traefik.http.routers.argo-web-https.service=argo-web-https
       - traefik.http.services.argo-web-https.loadbalancer.server.port=8001
+
     networks:
       - astraeus-interop
     ports:
@@ -264,7 +264,6 @@ services:
     depends_on:
       - argo-db
       - elasticsearch
-      - traefik
     restart: "always"
   request-broker-db:
     image: postgres:14.4
@@ -321,10 +320,10 @@ services:
     labels:
       - traefik.port=8000
       - traefik.enable=true
-      - traefik.http.middlewares.add-statusapi.addprefix.prefix=/api/status
-      - traefik.http.routers.request-broker-web.rule=Host(`${RB_DNS}`)
-      - traefik.http.routers.request-broker-web.middlewares=add-statusapi@docker
-      - traefik.http.routers.request-broker-web.entrypoints=websecure
+      ## expose available RB Api end entries
+      - "traefik.http.routers.request-broker-web.rule=(Host(`${RB_DNS}`) && PathRegexp(`^/api/(status|reading-rooms)(/?)$`)) 
+        || (Host(`${RB_DNS}`) && PathRegexp(`^/api/(download-csv)(/.*)$`)) || (Host(`${RB_DNS}`) && (PathPrefix(`${RB_DELV_API}`) || PathPrefix(`${RB_PROC_API}`)))"
+      - traefik.http.routers.request-broker-web.entrypoints=web,websecure
       - traefik.http.routers.request-broker-web.tls=true
       - traefik.http.services.request-broker-web.loadbalancer.server.port=8000
     networks:
@@ -333,7 +332,6 @@ services:
       - "${RB_PORT:-8000}:${RB_PORT:-8000}"
     depends_on:
       - request-broker-db
-      - traefik
     restart: "always"
 
   dimes-web:
@@ -354,8 +352,8 @@ services:
     labels:
       - traefik.port=80
       - traefik.enable=true
-      - traefik.http.routers.dimes-web-https.rule=Host(`myreadingroom.library.pitt.edu`)
-      - traefik.http.routers.dimes-web-https.entrypoints=websecure
+      - traefik.http.routers.dimes-web-https.rule=Host(`${RM_DNS}`)
+      - traefik.http.routers.dimes-web-https.entrypoints=web,websecure
       - traefik.http.routers.dimes-web-https.tls=true
       - traefik.http.services.dimes-web-https.loadbalancer.server.port=80
     ports:
@@ -364,7 +362,6 @@ services:
     depends_on:
       - argo-web
       - request-broker-web
-      - traefik
     restart: "always"
 
   elasticsearch:
@@ -401,7 +398,7 @@ services:
       - --log.level=INFO
       - --providers.docker
       - --api
-      ##- --api.insecure   # only for testing environment
+      - --api.insecure   # only for testing environment
       - --providers.docker.exposedbydefault=false
       #entrypoints
       - --entryPoints.web.address=:80
@@ -409,6 +406,10 @@ services:
       #cert
       - --providers.file.directory=/etc/traefik/config #dynamic config
       - --providers.file.watch=true   ## reload any changes
+      #just apply a generic redirect non-secure instead of configuring every container
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
     networks:
       - astraeus-interop
     ports:
@@ -417,17 +418,12 @@ services:
       - "8080:8080" 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro 
-      - ${CONFIG_PATH}/config/certificates.yml:/etc/traefik/config/certificates.yml
+      - ${CONFIG_PATH}/config/certificates.yml:/etc/traefik/config/certificates.yml:ro
       - ${CONFIG_PATH}/config/tls-cert/:/etc/tls-cert/
 
     labels:
       - "traefik.port=8080"
       - "traefik.enable=true"
-      #  redirect nonsecure request to https
-      - "traefik.http.routers.http-request.rule=hostregexp(`{host:.+}`)"
-      - "traefik.http.routers.http-request.entrypoints=web"
-      - "traefik.http.routers.http-request.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # dashboard 
       - traefik.http.routers.api.entrypoints=websecure
       - traefik.http.routers.api.rule=Host(`${DASHBOARD_HOST}`)
