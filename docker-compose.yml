@@ -1,4 +1,3 @@
-version: '3'
 services:
   pisces-db:
     image: postgres:14.4
@@ -104,6 +103,7 @@ services:
       - astraeus-interop
     environment:
       - POSTGRES_PASSWORD=${REQUEST_BROKER_DB_PASS}
+    restart: "always"
   request-broker-web:
     build: 
       context: ./request_broker
