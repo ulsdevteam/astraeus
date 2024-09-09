@@ -14,6 +14,7 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       - APPLICATION_PORT=8007
+      - EXTENT_NULLABLE_FLG=${EXTENT_NULLABLE_FLG}
     volumes:
       - ./pisces:/code
     networks:
@@ -25,6 +26,8 @@ services:
       - elasticsearch
     restart: "always"
   pisces-cron:
+    environment:
+      - EXTENT_NULLABLE_FLG=${EXTENT_NULLABLE_FLG}
     build:
       context: ./pisces
       dockerfile: Dockerfile.cron
