@@ -14,7 +14,7 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       - APPLICATION_PORT=8007
-      - EXTENT_NULLABLE_FLG=${EXTENT_NULLABLE_FLG}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     volumes:
       - ./pisces:/code
     networks:
@@ -27,7 +27,7 @@ services:
     restart: "always"
   pisces-cron:
     environment:
-      - EXTENT_NULLABLE_FLG=${EXTENT_NULLABLE_FLG}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     build:
       context: ./pisces
       dockerfile: Dockerfile.cron
