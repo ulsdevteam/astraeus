@@ -1,4 +1,3 @@
-version: '3'
 services:
   pisces-db:
     image: postgres:14.4
@@ -59,6 +58,7 @@ services:
       - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
       - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     volumes:
       - ./pisces:/code
     networks:
@@ -117,6 +117,7 @@ services:
       - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
       - CRON=1
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     build:
       context: ./pisces
       dockerfile: Dockerfile.cron
@@ -127,6 +128,7 @@ services:
     depends_on:
       - pisces-web
     restart: "always"
+    
   scorpio-db:
     image: postgres:14.4
     volumes:
@@ -136,6 +138,7 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${SCORPIO_DB_PASS}
+ 
   scorpio-web:
     build: 
       context: ./scorpio
@@ -205,6 +208,7 @@ services:
     depends_on:
       - scorpio-web
     restart: "always"
+  
   argo-db:
     image: postgres:14.4
     volumes:
@@ -214,6 +218,7 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${ARGO_DB_PASS}
+
   argo-web:
     environment:
       - DJANGO_PORT=${ARGO_PORT}
@@ -244,6 +249,16 @@ services:
     hostname: argo.library.pitt.edu
     volumes:
       - ./argo:/code
+    labels:
+      - traefik.port=8001  
+      - traefik.enable=true
+      # Entry Point for https
+      - traefik.http.routers.argo-web-https.rule=Host(`${ARGO_DNS}`)
+      - traefik.http.routers.argo-web-https.entrypoints=web,websecure
+      - traefik.http.routers.argo-web-https.tls=true
+      - traefik.http.routers.argo-web-https.service=argo-web-https
+      - traefik.http.services.argo-web-https.loadbalancer.server.port=8001
+
     networks:
       - astraeus-interop
     ports:
@@ -260,6 +275,7 @@ services:
       - astraeus-interop
     environment:
       - POSTGRES_PASSWORD=${RB_DB_PASS}
+
   request-broker-web:
     environment:
       - DJANGO_DEBUG=${DJANGO_DEBUG}
@@ -276,7 +292,8 @@ services:
       - AS_USERNAME=${AS_USERNAME}
       - AS_PASSWORD=${AS_PASSWORD}
       - AS_REPO_ID=${AS_REPO_ID}
-      - AEON_API_KEY=${RB_AEON_API_KEY}
+      - AEON_APIKEY=${RB_AEON_API_KEY}
+      - AEON_BASEURL=${RB_AEON_BASEURL}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
@@ -302,6 +319,14 @@ services:
     hostname: requestbroker.library.pitt.edu
     volumes:
       - ./request_broker:/code
+    labels:
+      - traefik.port=8000
+      - traefik.enable=true
+      ## expose available RB Api end entries
+      - "traefik.http.routers.request-broker-web.rule=(Host(`${RB_DNS}`) && PathRegexp(`^/api/(.*)$`))"
+      - traefik.http.routers.request-broker-web.entrypoints=web,websecure
+      - traefik.http.routers.request-broker-web.tls=true
+      - traefik.http.services.request-broker-web.loadbalancer.server.port=8000
     networks:
       - astraeus-interop
     ports:
@@ -309,6 +334,7 @@ services:
     depends_on:
       - request-broker-db
     restart: "always"
+
   dimes-web:
     build: 
       context: ./dimes
@@ -320,10 +346,18 @@ services:
         - REACT_APP_MINIMAP_KEY=${REACT_APP_MINIMAP_KEY}
         - REACT_APP_S3_BASEURL=${REACT_APP_S3_BASEURL}
         - REACT_APP_EMAIL=${REACT_APP_EMAIL}
-        - REACT_APP_RECAPCHA_SITE_KEY=${REACT_APP_RECAPCHA_SITE_KEY}
+        - REACT_APP_CAPTCHA_SITE_KEY=${REACT_APP_CAPTCHA_SITE_KEY}
         - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
+        - REACT_APP_REFINE_SEARCH=${REACT_APP_REFINE_SEARCH}
     networks:
       - astraeus-interop
+    labels:
+      - traefik.port=80
+      - traefik.enable=true
+      - traefik.http.routers.dimes-web-https.rule=Host(`${RM_DNS}`)
+      - traefik.http.routers.dimes-web-https.entrypoints=web,websecure
+      - traefik.http.routers.dimes-web-https.tls=true
+      - traefik.http.services.dimes-web-https.loadbalancer.server.port=80
     ports:
       - 3000:80
     stdin_open: true
@@ -342,7 +376,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - http.cors.enabled=true
-      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu http://myreadingroom.library.pitt.edu http://localhost:3000 https://requestbroker.library.pitt.edu http://requestbroker.library.pitt.edu http://localhost:8000 https://argo.library.pitt.edu http://argo.library.pitt.edu http://localhost:8001 http://localhost:3001 http:localhost:8008 http://localhost:8007
+      - http.cors.allow-origin=https://myreadingroom.library.pitt.edu http://myreadingroom.library.pitt.edu http://localhost:3000 https://requestbroker.library.pitt.edu http://requestbroker.library.pitt.edu https://argo.library.pitt.edu http://argo.library.pitt.edu
       - http.cors.allow-headers=Content-Type,Access-Control-Allow-Headers,Authorization,X-Requested-With
       - http.cors.allow-credentials=true
     ulimits:
@@ -356,6 +390,47 @@ services:
     ports:
       - 9200:9200
     restart: "always"
+
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    hostname: "traefik"
+    command:
+      - --log.level=INFO
+      - --providers.docker
+      - --api
+      - --providers.docker.exposedbydefault=false
+      #entrypoints
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443  
+      #cert
+      - --providers.file.directory=/etc/traefik/config #dynamic config
+      - --providers.file.watch=true   ## reload any changes
+      #just apply a generic redirect non-secure instead of configuring every container
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+    networks:
+      - astraeus-interop
+    ports:
+      - "80:80"  #encrypt uses this port 
+      - "443:443"  
+      - "8080:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - ${CONFIG_PATH}/config/certificates.yml:/etc/traefik/config/certificates.yml:ro #dynamic configuration
+      - ${CONFIG_PATH}/config/tls-cert/:/etc/tls-cert/  # Mount the directory containing certs
+
+    labels:
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+      # dashboard 
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.rule=Host(`${DASHBOARD_HOST}`)
+      - traefik.http.routers.api.tls=true 
+      - traefik.http.routers.api.service=api@internal  #forward requests to api service
+      - traefik.http.services.dashboard.loadbalancer.server.port=8080
+    restart: always #always restart traefik
 
 volumes:
   piscesdbvolume:
