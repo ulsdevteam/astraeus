@@ -13,7 +13,51 @@ services:
       context: ./pisces
       dockerfile: Dockerfile.prod
     environment:
-      - APPLICATION_PORT=8007
+      - APPLICATION_PORT=${PISCES_PORT}
+      - DJANGO_CRON_LOCKFILE_PATH=${PISCES_DJANGO_CRON_LOCKFILE_PATH}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_PORT=${PISCES_PORT}
+      - DJANGO_SECRET_KEY=${PISCES_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${PISCES_DJANGO_ALLOWED_HOSTS}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${PISCES_DB}
+      - SQL_USER=${PISCES_DB_USER}
+      - SQL_PASSWORD=${PISCES_DB_PASS}
+      - SQL_HOST=${PISCES_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - AS_BASEURL=${AS_BASEURL}
+      - AS_USERNAME=${AS_USERNAME}
+      - AS_PASSWORD=${AS_PASSWORD}
+      - AS_REPO_ID=${AS_REPO_ID}
+      - CARTOGRAPHER_USE=${CARTOGRAPHER_USE}
+      - CARTOGRAPHER_BASEURL=${CARTOGRAPHER_BASEURL}
+      - CARTOGRAPHER_HEALTH_CHECK_PATH=${CARTOGRAPHER_HEALTH_CHECK_PATH}
+      - CHUNK_SIZE=${CHUNK_SIZE}
+      - INDEX_DELETE_URL=${INDEX_DELETE_URL}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - EMAIL_TO_ADDRESSES=${EMAIL_TO_ADDRESSES}
+      - MOVING_IMAGE_REFS=${MOVING_IMAGE_REFS}
+      - AUDIO_REFS=${AUDIO_REFS}
+      - PHOTOGRAPH_REFS=${PHOTOGRAPH_REFS}
+      - ASSET_BASEURL=${ASSET_BASEURL}
+      - SCHEMAS_BASE_DIR=${SCHEMAS_BASE_DIR}
+      - BASE_SCHEMA=${BASE_SCHEMA}
+      - AGENT_SCHEMA=${AGENT_SCHEMA}
+      - COLLECTION_SCHEMA=${COLLECTION_SCHEMA}
+      - OBJECT_SCHEMA=${OBJECT_SCHEMA}
+      - TERM_SCHEMA=${TERM_SCHEMA}
+      - FINDING_AID_STATUS_RESTRICT=${FINDING_AID_STATUS_RESTRICT}
+      - NOTIFY_EMAIL=${NOTIFY_EMAIL}
+      - NOTIFY_TEAMS=${NOTIFY_TEAMS}
+      - TEAMS_URL=${TEAMS_URL}
+      - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
+      - db=${PISCES_SQL_HOST}
+      - PROD=${PROD}
     volumes:
       - ./pisces:/code
     networks:
@@ -25,6 +69,53 @@ services:
       - elasticsearch
     restart: "always"
   pisces-cron:
+    environment:
+      - APPLICATION_PORT=${PISCES_PORT}
+      - DJANGO_CRON_LOCKFILE_PATH=${PISCES_DJANGO_CRON_LOCKFILE_PATH}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_PORT=${PISCES_PORT}
+      - DJANGO_SECRET_KEY=${PISCES_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${PISCES_DJANGO_ALLOWED_HOSTS}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${PISCES_DB}
+      - SQL_USER=${PISCES_DB_USER}
+      - SQL_PASSWORD=${PISCES_DB_PASS}
+      - SQL_HOST=${PISCES_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - AS_BASEURL=${AS_BASEURL}
+      - AS_USERNAME=${AS_USERNAME}
+      - AS_PASSWORD=${AS_PASSWORD}
+      - AS_REPO_ID=${AS_REPO_ID}
+      - CARTOGRAPHER_USE=${CARTOGRAPHER_USE}
+      - CARTOGRAPHER_BASEURL=${CARTOGRAPHER_BASEURL}
+      - CARTOGRAPHER_HEALTH_CHECK_PATH=${CARTOGRAPHER_HEALTH_CHECK_PATH}
+      - CHUNK_SIZE=${CHUNK_SIZE}
+      - INDEX_DELETE_URL=${INDEX_DELETE_URL}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - EMAIL_TO_ADDRESSES=${EMAIL_TO_ADDRESSES}
+      - MOVING_IMAGE_REFS=${MOVING_IMAGE_REFS}
+      - AUDIO_REFS=${AUDIO_REFS}
+      - PHOTOGRAPH_REFS=${PHOTOGRAPH_REFS}
+      - ASSET_BASEURL=${ASSET_BASEURL}
+      - SCHEMAS_BASE_DIR=${SCHEMAS_BASE_DIR}
+      - BASE_SCHEMA=${BASE_SCHEMA}
+      - AGENT_SCHEMA=${AGENT_SCHEMA}
+      - COLLECTION_SCHEMA=${COLLECTION_SCHEMA}
+      - OBJECT_SCHEMA=${OBJECT_SCHEMA}
+      - TERM_SCHEMA=${TERM_SCHEMA}
+      - FINDING_AID_STATUS_RESTRICT=${FINDING_AID_STATUS_RESTRICT}
+      - NOTIFY_EMAIL=${NOTIFY_EMAIL}
+      - NOTIFY_TEAMS=${NOTIFY_TEAMS}
+      - TEAMS_URL=${TEAMS_URL}
+      - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
+      - db=${PISCES_SQL_HOST}
+      - PROD=${PROD}
+      - CRON=1
     build:
       context: ./pisces
       dockerfile: Dockerfile.cron
@@ -35,6 +126,7 @@ services:
     depends_on:
       - pisces-web
     restart: "always"
+    
   scorpio-db:
     image: postgres:14.4
     volumes:
@@ -44,24 +136,66 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${SCORPIO_DB_PASS}
+ 
   scorpio-web:
     build: 
       context: ./scorpio
       dockerfile: Dockerfile.prod
       args:
         - SCORPIO_DNS=${SCORPIO_DNS}
-        - APPLICATION_PORT=${SCORPIO_PORT:-8013}
+        - APPLICATION_PORT=${SCORPIO_PORT:-8008}
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_CRON_LOCKFILE_PATH=${SCORPIO_DJANGO_CRON_LOCKFILE_PATH}
+      - DJANGO_PORT=${SCORPIO_PORT}
+      - APPLICATION_PORT=${SCORPIO_PORT}
+      - DJANGO_SECRET_KEY=${SCORPIO_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${SCORPIO_DJANGO_ALLOWED_HOSTS}
+      - MAX_OBJECTS=${MAX_OBJECTS}
+      - PISCES_BASEURL=${PISCES_BASEURL}
+      - PISCES_POST_INDEX_PATH=${PISCES_POST_INDEX_PATH}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${SCORPIO_DB}
+      - SQL_USER=${SCORPIO_DB_USER}
+      - SQL_PASSWORD=${SCORPIO_DB_PASS}
+      - SQL_HOST=${SCORPIO_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - db=${SCORPIO_SQL_HOST}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - PROD=${PROD}
     volumes:
       - ./scorpio:/code
     networks:
       - astraeus-interop
     ports:
-      - "${SCORPIO_PORT:-8013}:${SCORPIO_PORT:-8013}"
+      - "${SCORPIO_PORT:-8008}:${SCORPIO_PORT:-8008}"
     depends_on:
       - scorpio-db
       - elasticsearch
     restart: "always"
   scorpio-cron:
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_CRON_LOCKFILE_PATH=${SCORPIO_DJANGO_CRON_LOCKFILE_PATH}
+      - DJANGO_PORT=${SCORPIO_PORT}
+      - APPLICATION_PORT=${SCORPIO_PORT}
+      - DJANGO_SECRET_KEY=${SCORPIO_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${SCORPIO_DJANGO_ALLOWED_HOSTS}
+      - MAX_OBJECTS=${MAX_OBJECTS}
+      - PISCES_BASEURL=${PISCES_BASEURL}
+      - PISCES_POST_INDEX_PATH=${PISCES_POST_INDEX_PATH}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${SCORPIO_DB}
+      - SQL_USER=${SCORPIO_DB_USER}
+      - SQL_PASSWORD=${SCORPIO_DB_PASS}
+      - SQL_HOST=${SCORPIO_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - db=${SCORPIO_SQL_HOST}
+      - PROD=${PROD}
+      - CRON=1
     build:
       context: ./scorpio
       dockerfile: Dockerfile.cron
@@ -72,6 +206,7 @@ services:
     depends_on:
       - scorpio-web
     restart: "always"
+  
   argo-db:
     image: postgres:14.4
     volumes:
@@ -81,12 +216,47 @@ services:
     restart: "always"
     environment:
       - POSTGRES_PASSWORD=${ARGO_DB_PASS}
+
   argo-web:
+    environment:
+      - DJANGO_PORT=${ARGO_PORT}
+      - APPLICATION_PORT=${ARGO_PORT}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_SECRET_KEY=${ARGO_DJANGO_SECRET_KEY}
+      - DJANGO_STATIC_URL=${ARGO_DJANGO_STATIC_URL}
+      - DJANGO_ALLOWED_HOSTS=${ARGO_DJANGO_ALLOWED_HOSTS}
+      - ELASTICSEARCH_CONNECTION=${ELASTICSEARCH_CONNECTION}
+      - SQL_USER=${ARGO_DB_USER}
+      - SQL_PASSWORD=${ARGO_DB_PASS}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_HOST=${ARGO_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - SQL_DATABASE=${ARGO_DB}
+      - USE_X_FORWARDED_HOST=${USE_X_FORWARDED_HOST}
+      - SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
+      - db=${ARGO_SQL_HOST}
+      - PROD=${PROD}
     build: 
       context: ./argo
+      args:
+      - APPLICATION_PORT=${ARGO_PORT}
+      - ARGO_DNS=${ARGO_DNS}
       dockerfile: Dockerfile.prod
+    hostname: argo.library.pitt.edu
     volumes:
       - ./argo:/code
+    labels:
+      - traefik.port=8001  
+      - traefik.enable=true
+      # Entry Point for https
+      - traefik.http.routers.argo-web-https.rule=Host(`${ARGO_DNS}`)
+      - traefik.http.routers.argo-web-https.entrypoints=web,websecure
+      - traefik.http.routers.argo-web-https.tls=true
+      - traefik.http.routers.argo-web-https.service=argo-web-https
+      - traefik.http.services.argo-web-https.loadbalancer.server.port=8001
+
     networks:
       - astraeus-interop
     ports:
@@ -102,30 +272,89 @@ services:
     networks:
       - astraeus-interop
     environment:
-      - POSTGRES_PASSWORD=${REQUEST_BROKER_DB_PASS}
-    restart: "always"
+      - POSTGRES_PASSWORD=${RB_DB_PASS}
+
   request-broker-web:
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_SECRET_KEY=${RB_DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${RB_DJANGO_ALLOWED_HOSTS}
+      - DJANGO_CORS_ALLOWED_ORIGINS=${RB_DJANGO_CORS_ALLOWED_ORIGINS}
+      - SQL_ENGINE=${SQL_ENGINE}
+      - SQL_DATABASE=${RB_DB}
+      - SQL_USER=${RB_DB_USER}
+      - SQL_PASSWORD=${RB_DB_PASS}
+      - SQL_HOST=${RB_SQL_HOST}
+      - SQL_PORT=${SQL_PORT}
+      - AS_BASEURL=${AS_BASEURL}
+      - AS_USERNAME=${AS_USERNAME}
+      - AS_PASSWORD=${AS_PASSWORD}
+      - AS_REPO_ID=${AS_REPO_ID}
+      - AEON_APIKEY=${RB_AEON_API_KEY}
+      - AEON_BASEURL=${RB_AEON_BASEURL}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - DEFAULT_FROM_EMAIL=${RB_DEFAULT_FROM_EMAIL}
+      - DIMES_BASEURL=${RB_DIMES_BASEURL}
+      - RESTRICTED_IN_CONTAINER=${RB_RESTRICTED_IN_CONTAINER}
+      - OFFSITE_BUILDINGS=${RB_OFFSITE_BUILDINGS}
+      - RESOURCE_ID_SEPARATOR=${RB_RESOURCE_ID_SEPARATOR}
+      - USE_LOCATION_TITLE=${RB_USE_LOCATION_TITLE}
+      - PROD=${PROD}
+      - AEON_CACHE_DURATION=${AEON_CACHE_DURATION}
+      - db=${RB_SQL_HOST}
     build: 
       context: ./request_broker
       dockerfile: Dockerfile.prod
       args:
-        - REQUEST_BROKER_DNS=${REQUEST_BROKER_DNS}
-        - APPLICATION_PORT=${REQUEST_BROKER_PORT:-8000}
+        - REQUEST_BROKER_DNS=${RB_DNS}
+        - APPLICATION_PORT=${RB_PORT:-8000}
+        - DOCKER_BUILDKIT:0
+    hostname: requestbroker.library.pitt.edu
     volumes:
       - ./request_broker:/code
+    labels:
+      - traefik.port=8000
+      - traefik.enable=true
+      ## expose available RB Api end entries
+      - "traefik.http.routers.request-broker-web.rule=(Host(`${RB_DNS}`) && PathRegexp(`^/api/(.*)$`))"
+      - traefik.http.routers.request-broker-web.entrypoints=web,websecure
+      - traefik.http.routers.request-broker-web.tls=true
+      - traefik.http.services.request-broker-web.loadbalancer.server.port=8000
     networks:
       - astraeus-interop
     ports:
-      - "${REQUEST_BROKER_PORT:-8000}:${REQUEST_BROKER_PORT:-8000}"
+      - "${RB_PORT:-8000}:${RB_PORT:-8000}"
     depends_on:
       - request-broker-db
     restart: "always"
+
   dimes-web:
     build: 
       context: ./dimes
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_ARGO_BASEURL=${REACT_APP_ARGO_BASEURL}
+        - REACT_APP_REQUEST_BROKER_BASEURL=${REACT_APP_REQUEST_BROKER_BASEURL}
+        - REACT_APP_LOCALSTORAGE_KEY=${REACT_APP_LOCALSTORAGE_KEY}
+        - REACT_APP_MINIMAP_KEY=${REACT_APP_MINIMAP_KEY}
+        - REACT_APP_S3_BASEURL=${REACT_APP_S3_BASEURL}
+        - REACT_APP_EMAIL=${REACT_APP_EMAIL}
+        - REACT_APP_CAPTCHA_SITE_KEY=${REACT_APP_CAPTCHA_SITE_KEY}
+        - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
     networks:
       - astraeus-interop
+    labels:
+      - traefik.port=80
+      - traefik.enable=true
+      - traefik.http.routers.dimes-web-https.rule=Host(`${RM_DNS}`)
+      - traefik.http.routers.dimes-web-https.entrypoints=web,websecure
+      - traefik.http.routers.dimes-web-https.tls=true
+      - traefik.http.services.dimes-web-https.loadbalancer.server.port=80
     ports:
       - 3000:80
     stdin_open: true
@@ -158,6 +387,49 @@ services:
     ports:
       - 9200:9200
     restart: "always"
+
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    hostname: "traefik"
+    command:
+      ##- --log.level=DEBUG
+      - --log.level=INFO
+      - --providers.docker
+      - --api
+      - --api.insecure   # only for testing environment
+      - --providers.docker.exposedbydefault=false
+      #entrypoints
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443  
+      #cert
+      - --providers.file.directory=/etc/traefik/config #dynamic config
+      - --providers.file.watch=true   ## reload any changes
+      #just apply a generic redirect non-secure instead of configuring every container
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+    networks:
+      - astraeus-interop
+    ports:
+      - "80:80"  #encrypt uses this port 
+      - "443:443"  
+      - "8080:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - ${CONFIG_PATH}/config/certificates.yml:/etc/traefik/config/certificates.yml:ro
+      - ${CONFIG_PATH}/config/tls-cert/:/etc/tls-cert/
+
+    labels:
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+      # dashboard 
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.rule=Host(`${DASHBOARD_HOST}`)
+      - traefik.http.routers.api.tls=true 
+      - traefik.http.routers.api.service=api@internal  #forward requests to api service
+      - traefik.http.services.dashboard.loadbalancer.server.port=8080
+    restart: always #always restart traefik
 
 volumes:
   piscesdbvolume:

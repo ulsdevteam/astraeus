@@ -1,2 +1,6 @@
-### Deploy ###
+# traefik specific
+*.pem
+*.cert
+.vscode
+traefik/config/tls-cert/*### Deploy ###
 .env
