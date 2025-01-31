@@ -58,6 +58,7 @@ services:
       - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
       - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     volumes:
       - ./pisces:/code
     networks:
@@ -115,6 +116,7 @@ services:
       - RESOURCE_ID_0_PREFIXES=${RESOURCE_ID_0_PREFIXES}
       - db=${PISCES_SQL_HOST}
       - PROD=${PROD}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
       - CRON=1
     build:
       context: ./pisces
@@ -164,6 +166,7 @@ services:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
       - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
       - PROD=${PROD}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
     volumes:
       - ./scorpio:/code
     networks:
@@ -195,6 +198,7 @@ services:
       - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
       - db=${SCORPIO_SQL_HOST}
       - PROD=${PROD}
+      - INHERIT_EXTENT=${INHERIT_EXTENT}
       - CRON=1
     build:
       context: ./scorpio
@@ -238,6 +242,10 @@ services:
       - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX}
       - db=${ARGO_SQL_HOST}
       - PROD=${PROD}
+      - CITATION_REPOSITORY_NAME = ${CITATION_REPOSITORY_NAME}
+      - CITATION_REPOSITORY_BASEURL = ${CITATION_REPOSITORY_BASEURL}
+      - CITATION_SEPARATOR = ${CITATION_SEPARATOR}
+
     build: 
       context: ./argo
       args:
@@ -346,6 +354,8 @@ services:
         - REACT_APP_EMAIL=${REACT_APP_EMAIL}
         - REACT_APP_CAPTCHA_SITE_KEY=${REACT_APP_CAPTCHA_SITE_KEY}
         - REACT_APP_AEON_URL=${REACT_APP_AEON_URL}
+        - REACT_APP_ENABLE_READING_ROOM_SELECT=${REACT_APP_ENABLE_READING_ROOM_SELECT}
+        - REACT_APP_REFINE_SEARCH=${REACT_APP_REFINE_SEARCH}
     networks:
       - astraeus-interop
     labels:
