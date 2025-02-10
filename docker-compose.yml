@@ -313,7 +313,7 @@ services:
       - RESOURCE_ID_SEPARATOR=${RB_RESOURCE_ID_SEPARATOR}
       - USE_LOCATION_TITLE=${RB_USE_LOCATION_TITLE}
       - PROD=${PROD}
-      - AEON_CACHE_DURATION=${AEON_CACHE_DURATION}
+      - AEON_CACHE_DURACTION=${RB_AEON_CACHE_DURATATION}
       - db=${RB_SQL_HOST}
     build: 
       context: ./request_broker
@@ -361,7 +361,7 @@ services:
     labels:
       - traefik.port=80
       - traefik.enable=true
-      - traefik.http.routers.dimes-web-https.rule=Host(`${RM_DNS}`)
+      - traefik.http.routers.dimes-web-https.rule=Host(`${DIMES_DNS}`)
       - traefik.http.routers.dimes-web-https.entrypoints=web,websecure
       - traefik.http.routers.dimes-web-https.tls=true
       - traefik.http.services.dimes-web-https.loadbalancer.server.port=80
@@ -399,12 +399,12 @@ services:
     restart: "always"
 
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     container_name: traefik
     hostname: "traefik"
     command:
       ##- --log.level=DEBUG
-      - --log.level=INFO
+      - --log.level=WARN
       - --providers.docker
       - --api
       - --api.insecure   # only for testing environment
